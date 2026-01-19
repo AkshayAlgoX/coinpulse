@@ -16,6 +16,10 @@ import {
 import { fetcher } from '@/lib/coingecko.actions';
 import { convertOHLCData } from '@/lib/utils';
 
+/**
+ * A client-side component that renders a lightweight-charts candlestick visualization.
+ * Manages chart lifecycle, responsive resizing, and period-based data fetching.
+ */
 const CandlestickChart = ({
   children,
   data,
@@ -26,13 +30,21 @@ const CandlestickChart = ({
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
+  const requestIdRef = useRef(0);
 
-  const [loading, setLoading] = useState(false);
   const [period, setPeriod] = useState(initialPeriod);
-
   const [ohlcData, setOhlcData] = useState<OHLCData[]>(data ?? []);
+  const [loading, setLoading] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  /**
+   * Fetches OHLC data for a specific period and updates state if the request is current.
+   * @param selectedPeriod - The time period to fetch (e.g., 'daily', 'weekly').
+   */
   const fetchOHLCData = async (selectedPeriod: Period) => {
+    const requestId = ++requestIdRef.current;
+    setLoading(true);
+
     try {
       const { days, interval } = PERIOD_CONFIG[selectedPeriod];
 
@@ -43,23 +55,36 @@ const CandlestickChart = ({
         precision: 'full',
       });
 
-      setOhlcData(newData ?? []);
+      if (requestId === requestIdRef.current) {
+        setOhlcData(newData ?? []);
+      }
     } catch (e) {
-      console.error('Failed to fetch OHLCData', e);
+      if (requestId === requestIdRef.current) {
+        console.error('Failed to fetch OHLCData', e);
+      }
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   };
 
+  /**
+   * Handles user interaction to change the chart period.
+   * @param newPeriod - The newly selected Period.
+   */
   const handlePeriodChange = (newPeriod: Period) => {
     if (newPeriod === period) return;
+
     startTransition(async () => {
       setPeriod(newPeriod);
       await fetchOHLCData(newPeriod);
     });
   };
 
+  // Logic for initial chart setup and cleanup...
   useEffect(() => {
     const container = chartContainerRef.current;
-
     if (!container) return;
 
     const showTime = ['daily', 'weekly', 'monthly'].includes(period);
@@ -72,6 +97,7 @@ const CandlestickChart = ({
 
     series.setData(convertOHLCData(ohlcData));
     chart.timeScale().fitContent();
+
     chartRef.current = chart;
     candleSeriesRef.current = series;
 
@@ -87,26 +113,18 @@ const CandlestickChart = ({
       chartRef.current = null;
       candleSeriesRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [height]);
 
+  // Logic for updating data when ohlcData or period changes...
   useEffect(() => {
     if (!candleSeriesRef.current) return;
 
-    const convertedToSeconds = ohlcData.map(
-      (item) =>
-        [
-          Math.floor(item[0] / 1000),
-          item[1],
-          item[2],
-          item[3],
-          item[4],
-        ] as OHLCData,
-    );
-
-    const converted = convertOHLCData(convertedToSeconds);
+    const converted = convertOHLCData(ohlcData);
     candleSeriesRef.current.setData(converted);
     chartRef.current?.timeScale().fitContent();
   }, [ohlcData, period]);
+
   return (
     <div id="candlestick-chart">
       <div className="chart-header">
@@ -122,8 +140,8 @@ const CandlestickChart = ({
               className={
                 period === value ? 'config-button-active' : 'config-button'
               }
-              onClick={() => handlePeriodChange(value)}
-              disabled={loading}
+              onClick={() => handlePeriodChange(value as Period)}
+              disabled={loading || isPending}
             >
               {label}
             </button>
