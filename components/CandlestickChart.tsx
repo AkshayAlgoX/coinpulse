@@ -46,12 +46,13 @@ const CandlestickChart = ({
     setLoading(true);
 
     try {
-      const { days, interval } = PERIOD_CONFIG[selectedPeriod];
+      // FIX: Only extract 'days'. The API rejects 'interval' for OHLC endpoints.
+      const { days } = PERIOD_CONFIG[selectedPeriod];
 
       const newData = await fetcher<OHLCData[]>(`/coins/${coinId}/ohlc`, {
         vs_currency: 'usd',
         days,
-        interval,
+        // interval is intentionally removed to fix API Error 400
         precision: 'full',
       });
 
@@ -118,11 +119,17 @@ const CandlestickChart = ({
 
   // Logic for updating data when ohlcData or period changes...
   useEffect(() => {
-    if (!candleSeriesRef.current) return;
+    if (!candleSeriesRef.current || !chartRef.current) return;
+
+    // Optional: Update time scale visibility based on new period
+    const showTime = ['daily', 'weekly', 'monthly'].includes(period);
+    chartRef.current.applyOptions({
+      timeScale: { timeVisible: showTime },
+    });
 
     const converted = convertOHLCData(ohlcData);
     candleSeriesRef.current.setData(converted);
-    chartRef.current?.timeScale().fitContent();
+    chartRef.current.timeScale().fitContent();
   }, [ohlcData, period]);
 
   return (
