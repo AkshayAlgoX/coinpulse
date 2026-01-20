@@ -187,21 +187,23 @@ useEffect(() => {
 ## 🎨 Screenshots
 
 ### Dashboard View
-![Dashboard](https://via.placeholder.com/800x400?text=Dashboard+Screenshot)
+![Dashboard](./coinpulse1.png)
 
 ### Coin Terminal
-![Terminal](https://via.placeholder.com/800x400?text=Terminal+Screenshot)
+![Coin Terminal](./coinpulse2.png)
 
 ### Search Modal
-![Search](https://via.placeholder.com/800x400?text=Search+Screenshot)
+![Search](./Screenshot%202026-01-21%20012154.png)
 
+### All Coins
+![All Coins](./Screenshot%202026-01-21%20012105.png)
 ---
 
 ## 🚀 Deployment
 
 This project is deployed on **Vercel**.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/coinpulse)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/AkshayAlgoX/coinpulse)
 
 ---
 
@@ -238,7 +240,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Your Name**
 - GitHub: [AkshayAlgoX](https://github.com/AkshayAlgoX)
-- LinkedIn: [Akshaya R](https://linkedin.com/in/yourprofile)
+- LinkedIn: [Akshaya R](https://www.linkedin.com/in/akshaya-r-a381873a4)
 - Portfolio: [www.lnkpro.site](https://www.lnkpro.site)
 
 ---
