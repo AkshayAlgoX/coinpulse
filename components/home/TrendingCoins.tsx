@@ -1,7 +1,7 @@
 import { fetcher } from '@/lib/coingecko.actions';
 import Link from 'next/link';
 import Image from 'next/image';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn, formatCurrency, formatPercentage } from '@/lib/utils';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import DataTable from '@/components/DataTable';
 import { TrendingCoinsFallback } from '@/components/home/fallback';
@@ -38,7 +38,7 @@ const TrendingCoins = async () => {
     {
       header: 'Price',
       cellClassName: 'price-cell',
-      cell: (coin) => formatCurrency(coin.item.data.price), // Wrap it in the function
+      cell: (coin) => formatCurrency(coin.item.data.price),
     },
     {
       header: '24h Change',
@@ -55,12 +55,14 @@ const TrendingCoins = async () => {
               isTrendingUp ? 'text-green-500' : 'text-red-500',
             )}
           >
-            {isTrendingUp ? (
-              <TrendingUp width={16} height={16} />
-            ) : (
-              <TrendingDown width={16} height={16} />
-            )}
-            <p>{change.toFixed(2)}%</p>
+            <p className="flex items-center gap-1">
+              {formatPercentage(item.data.price_change_percentage_24h.usd)}
+              {isTrendingUp ? (
+                <TrendingUp width={16} height={16} />
+              ) : (
+                <TrendingDown width={16} height={16} />
+              )}
+            </p>
           </div>
         );
       },
