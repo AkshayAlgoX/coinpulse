@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Table,
   TableBody,
@@ -8,13 +10,12 @@ import {
 } from '@/components/ui/table';
 
 import { cn } from '@/lib/utils';
-
-// Make sure your DataTableProps interface is defined above this or imported
-// interface DataTableProps<T> { ... }
+import { DataTableProps } from '@/types';
 
 const DataTable = <T,>({
   columns,
   data,
+  onRowClick,
   rowKey,
   tableClassName,
   headerClassName,
@@ -31,7 +32,7 @@ const DataTable = <T,>({
             <TableHead
               key={i}
               className={cn(
-                'bg-dark-400 py-4 text-purple-100 first:pl-5 last:pr-5',
+                'bg-dark-400 py-4 text-purple-100 first:pl-5 first:text-center last:pr-5',
                 headerCellClassName,
                 column.headClassName,
               )}
@@ -45,8 +46,10 @@ const DataTable = <T,>({
         {data.map((row, rowIndex) => (
           <TableRow
             key={rowKey(row, rowIndex)}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
             className={cn(
               'hover:bg-dark-400/30! relative overflow-hidden rounded-lg border-b border-purple-100/5',
+              onRowClick && 'cursor-pointer',
               bodyRowClassName,
             )}
           >
@@ -54,7 +57,7 @@ const DataTable = <T,>({
               <TableCell
                 key={columnIndex}
                 className={cn(
-                  'py-4 first:pl-5 last:pr-5',
+                  'py-4 first:pl-5 first:text-center last:pr-5',
                   bodyCellClassName,
                   column.cellClassName,
                 )}

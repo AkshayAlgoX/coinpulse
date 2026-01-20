@@ -2,6 +2,7 @@
 import { buildPageNumbers, cn, ELLIPSIS } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import type { Pagination as PaginationType } from '@/types';
 import {
   Pagination,
   PaginationContent,
@@ -15,10 +16,23 @@ const CoinsPagination = ({
   currentPage,
   totalPages,
   hasMorePages,
-}: Pagination) => {
+}: PaginationType) => {
   const router = useRouter();
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    page: number,
+    disabled?: boolean,
+  ) => {
+    if (disabled) {
+      e.preventDefault();
+      return;
+    }
+    // We don't preventDefault here because we want the href to work normally if possible,
+    // but the onClick is there for programmatic navigation or extra logic if needed.
+    // Actually, usually in Next.js we might want to let the Link handle it or use router.push.
+    // The issue asks to ensure href exists for accessibility.
+    e.preventDefault();
     router.push(`/coins?page=${page}`);
   };
 
@@ -29,35 +43,39 @@ const CoinsPagination = ({
       <PaginationContent className="pagination-content">
         <PaginationItem className="pagination-control prev">
           <PaginationPrevious
-            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+            href={currentPage > 1 ? `/coins?page=${currentPage - 1}` : '#'}
+            onClick={(e) =>
+              handlePageChange(e, currentPage - 1, currentPage === 1)
+            }
             className={
               currentPage === 1 ? 'control-disabled' : 'control-button'
             }
           />
         </PaginationItem>
 
-        <div className="pagination-pages">
-          {pageNumbers.map((page, index) => (
-            <PaginationItem key={index}>
-              {page === ELLIPSIS ? (
-                <span className="ellipsis">... </span>
-              ) : (
-                <PaginationLink
-                  onClick={() => handlePageChange(page)}
-                  className={cn('page-link', {
-                    'page-link-active': currentPage === page,
-                  })}
-                >
-                  {page}
-                </PaginationLink>
-              )}
-            </PaginationItem>
-          ))}
-        </div>
+        {pageNumbers.map((page, index) => (
+          <PaginationItem key={index}>
+            {page === ELLIPSIS ? (
+              <PaginationEllipsis />
+            ) : (
+              <PaginationLink
+                href={`/coins?page=${page}`}
+                onClick={(e) => handlePageChange(e, page as number)}
+                isActive={currentPage === page}
+                className={cn('page-link', {
+                  'page-link-active': currentPage === page,
+                })}
+              >
+                {page}
+              </PaginationLink>
+            )}
+          </PaginationItem>
+        ))}
 
         <PaginationItem className="pagination-control next">
           <PaginationNext
-            onClick={() => !isLastPage && handlePageChange(currentPage + 1)}
+            href={!isLastPage ? `/coins?page=${currentPage + 1}` : '#'}
+            onClick={(e) => handlePageChange(e, currentPage + 1, isLastPage)}
             className={isLastPage ? 'control-disabled' : 'control-button'}
           />
         </PaginationItem>

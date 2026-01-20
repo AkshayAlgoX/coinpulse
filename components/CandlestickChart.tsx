@@ -6,6 +6,7 @@ import {
   getChartConfig,
   PERIOD_BUTTONS,
   PERIOD_CONFIG,
+  LIVE_INTERVAL_BUTTONS,
 } from '@/constants';
 import {
   CandlestickSeries,
@@ -15,6 +16,7 @@ import {
 } from 'lightweight-charts';
 import { fetcher } from '@/lib/coingecko.actions';
 import { convertOHLCData } from '@/lib/utils';
+import { CandlestickChartProps, OHLCData, Period } from '@/types';
 
 /**
  * A client-side component that renders a lightweight-charts candlestick visualization.
@@ -23,9 +25,13 @@ import { convertOHLCData } from '@/lib/utils';
 const CandlestickChart = ({
   children,
   data,
+  liveOhlcv,
   coinId,
   height = 360,
   initialPeriod = 'daily',
+  mode = 'historical',
+  liveInterval = '1s',
+  setLiveInterval,
 }: CandlestickChartProps) => {
   const chartContainerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
@@ -46,13 +52,11 @@ const CandlestickChart = ({
     setLoading(true);
 
     try {
-      // FIX: Only extract 'days'. The API rejects 'interval' for OHLC endpoints.
       const { days } = PERIOD_CONFIG[selectedPeriod];
 
       const newData = await fetcher<OHLCData[]>(`/coins/${coinId}/ohlc`, {
         vs_currency: 'usd',
         days,
-        // interval is intentionally removed to fix API Error 400
         precision: 'full',
       });
 
@@ -82,6 +86,14 @@ const CandlestickChart = ({
       await fetchOHLCData(newPeriod);
     });
   };
+
+  // Update chart when live data comes in
+  useEffect(() => {
+    if (mode === 'live' && liveOhlcv && candleSeriesRef.current) {
+      const formatted = convertOHLCData([liveOhlcv])[0];
+      candleSeriesRef.current.update(formatted);
+    }
+  }, [liveOhlcv, mode]);
 
   // Logic for initial chart setup and cleanup...
   useEffect(() => {
@@ -134,25 +146,44 @@ const CandlestickChart = ({
 
   return (
     <div id="candlestick-chart">
-      <div className="chart-header">
+      <div className="chart-header mb-4 flex flex-wrap items-center justify-between gap-4">
         <div className="flex-1">{children}</div>
 
-        <div className="button-group">
-          <span className="mx-2 text-sm font-medium text-purple-100/50">
-            Period:
-          </span>
-          {PERIOD_BUTTONS.map(({ value, label }) => (
-            <button
-              key={value}
-              className={
-                period === value ? 'config-button-active' : 'config-button'
-              }
-              onClick={() => handlePeriodChange(value as Period)}
-              disabled={loading || isPending}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="flex items-center gap-4">
+          {mode === 'live' && setLiveInterval && (
+            <div className="flex rounded-lg bg-black/30 p-1">
+              {LIVE_INTERVAL_BUTTONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  className={`rounded px-3 py-1 text-xs transition-colors ${
+                    liveInterval === value
+                      ? 'bg-gray-700 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                  onClick={() => setLiveInterval(value as any)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="button-group flex rounded-lg bg-black/30 p-1">
+            {PERIOD_BUTTONS.map(({ value, label }) => (
+              <button
+                key={value}
+                className={`rounded px-3 py-1 text-xs transition-colors ${
+                  period === value
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+                onClick={() => handlePeriodChange(value as Period)}
+                disabled={loading || isPending}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
       <div ref={chartContainerRef} className="chart" style={{ height }} />

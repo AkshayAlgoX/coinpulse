@@ -1,6 +1,7 @@
 'use server';
 
 import qs from 'query-string';
+import type { CoinGeckoErrorBody, QueryParams } from '@/types';
 
 const BASE_URL = process.env.COINGECKO_BASE_URL;
 const API_KEY = process.env.COINGECKO_API_KEY;
@@ -38,4 +39,31 @@ export async function fetcher<T>(
     );
   }
   return response.json();
+}
+
+export async function searchCoins(query: string) {
+  if (!query || query.length < 2) return [];
+
+  try {
+    // 1. Search for coins (Get IDs)
+    const searchUrl = `https://api.coingecko.com/api/v3/search?query=${query}`;
+    const searchRes = await fetch(searchUrl);
+    const searchData = await searchRes.json();
+
+    // Take top 8 results
+    const topCoins = searchData.coins?.slice(0, 8) || [];
+    const ids = topCoins.map((c: any) => c.id).join(',');
+
+    if (!ids) return [];
+
+    // 2. Get Price Data for these coins (so we can show green/red change)
+    const marketUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&price_change_percentage=24h`;
+    const marketRes = await fetch(marketUrl);
+    const marketData = await marketRes.json();
+
+    return marketData;
+  } catch (error) {
+    console.error('Search Error:', error);
+    return [];
+  }
 }

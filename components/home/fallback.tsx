@@ -1,5 +1,8 @@
+'use client';
+
 import React from 'react';
 import DataTable from '@/components/DataTable';
+import type { DataTableColumn } from '@/types';
 
 export const CoinOverviewFallback = () => {
   return (
