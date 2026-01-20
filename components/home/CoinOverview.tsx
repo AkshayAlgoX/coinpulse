@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
 import { CoinOverviewFallback } from '@/components/home/fallback';
 import CandlestickChart from '@/components/CandlestickChart'; // Ensure this path is correct
+import type { CoinDetailsData, OHLCData } from '@/types';
 
 const CoinOverview = async () => {
   let coin, coinOHCLData;

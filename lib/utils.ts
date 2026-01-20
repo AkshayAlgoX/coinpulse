@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { Time } from 'lightweight-charts';
 import { twMerge } from 'tailwind-merge';
+import type { OHLCData } from '@/types';
 
 /**
  * Merges Tailwind CSS classes with clsx for conditional styling.
@@ -30,14 +31,14 @@ export function formatCurrency(
   }
 
   if (showSymbol === undefined || showSymbol === true) {
-    return value.toLocaleString(undefined, {
+    return value.toLocaleString('en-US', {
       style: 'currency',
       currency: currency?.toUpperCase() || 'USD',
       minimumFractionDigits: digits ?? 2,
       maximumFractionDigits: digits ?? 2,
     });
   }
-  return value.toLocaleString(undefined, {
+  return value.toLocaleString('en-US', {
     minimumFractionDigits: digits ?? 2,
     maximumFractionDigits: digits ?? 2,
   });
