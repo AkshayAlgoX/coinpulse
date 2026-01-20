@@ -237,9 +237,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
-- Portfolio: [yourwebsite.com](https://yourwebsite.com)
+- GitHub: [AkshayAlgoX](https://github.com/AkshayAlgoX)
+- LinkedIn: [Akshaya R](https://linkedin.com/in/yourprofile)
+- Portfolio: [www.lnkpro.site](https://www.lnkpro.site)
 
 ---
 
