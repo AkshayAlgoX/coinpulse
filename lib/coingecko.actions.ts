@@ -42,24 +42,39 @@ export async function fetcher<T>(
 }
 
 export async function searchCoins(query: string) {
-  if (!query || query.length < 2) return [];
+  const trimmedQuery = query.trim();
+  if (!trimmedQuery || trimmedQuery.length < 2) return [];
 
   try {
     // 1. Search for coins (Get IDs)
-    const searchUrl = `https://api.coingecko.com/api/v3/search?query=${query}`;
-    const searchRes = await fetch(searchUrl);
-    const searchData = await searchRes.json();
+    // Using fetcher to handle base URL, API key and common error handling
+    const searchData = await fetcher<any>('search', { query: trimmedQuery }, 0);
+
+    // Validate response payload
+    if (!searchData || !searchData.coins) {
+      return [];
+    }
 
     // Take top 8 results
-    const topCoins = searchData.coins?.slice(0, 8) || [];
+    const topCoins = searchData.coins.slice(0, 8);
     const ids = topCoins.map((c: any) => c.id).join(',');
 
     if (!ids) return [];
 
     // 2. Get Price Data for these coins (so we can show green/red change)
-    const marketUrl = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}&price_change_percentage=24h`;
-    const marketRes = await fetch(marketUrl);
-    const marketData = await marketRes.json();
+    const marketData = await fetcher<any[]>(
+      'coins/markets',
+      {
+        vs_currency: 'usd',
+        ids,
+        price_change_percentage: '24h',
+      },
+      0,
+    );
+
+    if (!Array.isArray(marketData)) {
+      return [];
+    }
 
     return marketData;
   } catch (error) {

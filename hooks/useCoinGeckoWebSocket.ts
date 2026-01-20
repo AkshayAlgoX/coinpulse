@@ -36,6 +36,7 @@ export const useCoinGeckoWebSocket = ({
   const currentPriceRef = useRef<number>(0);
 
   useEffect(() => {
+    let isMounted = true;
     setIsConnected(false);
     setTrades([]);
 
@@ -50,6 +51,8 @@ export const useCoinGeckoWebSocket = ({
           precision: 'full',
         });
 
+        if (!isMounted) return;
+
         if (priceData && priceData[coinId]) {
           const newPrice = priceData[coinId].usd;
           currentPriceRef.current = newPrice;
@@ -60,16 +63,21 @@ export const useCoinGeckoWebSocket = ({
             usd_24h_change: priceData[coinId].usd_24h_change,
             last_updated_at: priceData[coinId].last_updated_at,
           });
+          setIsConnected(true);
+        } else {
+          setIsConnected(false);
         }
-        setIsConnected(true);
       } catch (error) {
-        console.error('Polling Error:', error);
+        if (isMounted) {
+          console.error('Polling Error:', error);
+          setIsConnected(false);
+        }
       }
     };
 
     // B. Simulate Live Trades (Visual Effect)
     const simulateLiveTrade = () => {
-      if (currentPriceRef.current === 0) return;
+      if (currentPriceRef.current === 0 || !isMounted) return;
 
       setTrades((prevTrades) => {
         const type = Math.random() > 0.5 ? 'buy' : 'sell';
@@ -95,6 +103,7 @@ export const useCoinGeckoWebSocket = ({
     const tradeInterval = setInterval(simulateLiveTrade, 4000); // 4s Fake Trade
 
     return () => {
+      isMounted = false;
       clearInterval(priceInterval);
       clearInterval(tradeInterval);
     };
